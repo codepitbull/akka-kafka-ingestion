@@ -27,4 +27,4 @@ Verify inside the Kafka-Docker container:
 docker exec -it kafka bash
 export JMX_PORT=6666
 bin/kafka-console-consumer.sh --zookeeper `<USE DOCKER IP HERE>:2181 --topic valid --from-beginning
-``
+```
