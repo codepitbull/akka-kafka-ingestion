@@ -30,7 +30,9 @@ object Ingestion {
     })
   }
 
-  def toKafkaMessage(topic: String, elem: EnrichedValue) = new ProducerRecord[Array[Byte], String](topic, elem.toString)
+  def goodMessage(elem: EnrichedValue) = new ProducerRecord[Array[Byte], String]("enriched", elem.toString)
+
+  def deadLetterMessage(elem: EnrichedValue) = new ProducerRecord[Array[Byte], String]("deadletters", elem.toString)
 
   def main(args: Array[String]): Unit = {
     val ip = args(0)
@@ -53,8 +55,8 @@ object Ingestion {
 
       val sink = Sink.ignore
 
-      src ~> transformFlow ~> bcast ~> filterValid ~> enrichFlow.map(toKafkaMessage("valid", _)) ~> Producer.plainSink(producerSettings)
-                              bcast ~> filterInalid ~> enrichFlow.map(toKafkaMessage("invalid", _)) ~> Producer.plainSink(producerSettings)
+      src ~> transformFlow ~> bcast ~> filterValid ~> enrichFlow.map(goodMessage) ~> Producer.plainSink(producerSettings)
+                              bcast ~> filterInalid ~> enrichFlow.map(deadLetterMessage) ~> Producer.plainSink(producerSettings)
       ClosedShape
     }).run()
   }
